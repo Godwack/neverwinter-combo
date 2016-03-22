@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Neverwinter Insignia Bonus Combos</title>
+<style>
+a {text-decoration: none;}
+a:hover {text-decoration: underline;}
+</style>
+</head>
+<body>
+<select id="select0" onchange="update()"></select>Crescent Insignia<br>
+<select id="select1" onchange="update()"></select>Regal Insignia<br>
+<select id="select2" onchange="update()"></select>Barbed Insignia<br>
+<select id="select3" onchange="update()"></select>Illuminated Insignia<br>
+<select id="select4" onchange="update()"></select>Enlightened Insignia<br><br>
+Possible Bonus Combos:<ol id="list"></ol>
+<script>
+var insignia = {
+    A: "Crescent",
+    B: "Regal",
+    C: "Barbed",
+    D: "Illuminated",
+    E: "Enlightened"
+};
+
+var bonuses = [
+    {itemName: "Vampire's Craving", slots: "AAB", description: "Whenever you perform a Lifesteal, you are healed for 3% of your maximum Hit Points over 4 seconds."},
+    {itemName: "Survivor's Blessing", slots: "AAC", description: "Whenever you Deflect an attack, you are healed for 3% of your maximum Hit Points over 4 seconds."},
+    {itemName: "Oppressor's Reprieve", slots: "ADD", description: "Whenever you are Stunned, Knocked, or Immobilized, you are healed for 4% of your maximum Hit Points over 4 seconds."},
+    {itemName: "Barbarian's Revelry", slots: "AEE", description: "Whenever you perform a Critical Strike, you are healed for 1.5% of your maximum Hit Points."},
+    {itemName: "Protector's Camaraderie", slots: "BBC", description: "Whenever your summoned Companion attacks, you gain 3% of your Power and Defense for 10 seconds. This effect can stack up to 4 times."},
+    {itemName: "Warlord's Inspiration", slots: "BBE", description: "Your summoned Companion does 20% more damage."},
+    {itemName: "Alchemist's Invigoration", slots: "BDD", description: "Whenever you drink a Healing Potion, you are granted 5% more Power and Defense for 10 seconds."},
+    {itemName: "Artificer's Persuasion", slots: "CCD", description: "Whenever you use an Artifact power, your Recovery, Movement, Action Point Gain, and Stamina Gain are increased by 10% of your Power for 15 seconds."},
+    {itemName: "Magistrate's Patience", slots: "CCE", description: "Whenever you perform a Critical Strike, your target will gain a stack of Magistrate's Consideration. Enemies affected by Magistrate's Consideration take Psychic Damage equal to 10% of your Power over 4 seconds. Allies affected by Magistrate's Consideration are healed for 3% of your maximum Hit Points over 4 seconds."},
+    {itemName: "Champion's Return", slots: "DEE", description: "Whenever you are reduced to 50% Hit Points, you instantly recover 20% of your Stamina and are healed for 20% of your maximum Hit Points over 10 seconds. This effect can only occur once every 60 seconds."},
+    {itemName: "Wanderer's Fortune", slots: "ABD", description: "You have a 4% chance after killing a foe to find a Refining Stone at your feet."},
+    {itemName: "Cavalry's Warning", slots: "ACE", description: "Whenever you activate a Mount Combat Power, you gain an increase of 10% to your Power, Recovery, Armor Penetration, Critical Strike, Defense, Deflection, Regeneration, and Life Steal."},
+    {itemName: "Shepherd's Devotion", slots: "BCD", description: "Whenever you use a Daily power, your teammates Defense, Deflection, and Movement are increased by 5% of your Power for 15 seconds."},
+    {itemName: "Gladiator's Guile", slots: "BDE", description: "When your Stamina is above 75%, you move 15% faster. When your Stamina is below 25%, gain 15% of your Power as Stamina Gain."},
+    {itemName: "Vampire's Thirst", slots: "AB", description: "Whenever you perform a Lifesteal, you are healed for 1.2% of your maximum Hit Points over 4 seconds."},
+    {itemName: "Survivor's Gift", slots: "AC", description: "Whenever you Deflect an attack, you are healed for 1.2% of your maximum Hit Points over 4 seconds."},
+    {itemName: "Oppressor's Respite", slots: "AD", description: "Whenever you are Stunned, Knocked, or Immobilized, you are healed for 1% of your maximum Hit Points over 4 seconds."},
+    {itemName: "Barbarian's Delight", slots: "AE", description: "Whenever you perform a Critical Strike, you are healed for 0.5% of your maximum Hit Points."},
+    {itemName: "Protector's Friendship", slots: "BC", description: "Whenever your summoned Companion attacks, you gain 1% of your Power and Defense for 10 seconds. This effect can stack up to 4 times."},
+    {itemName: "Warlord's Encouragement", slots: "BE", description: "Your summoned Companion does 10% more damage."},
+    {itemName: "Alchemist's Refresher", slots: "BD", description: "Whenever you drink a Healing Potion, you are granted 2% more Power and Defense for 10 seconds."},
+    {itemName: "Artificer's Influence", slots: "CD", description: "Whenever you use an Artifact power, your Recovery, Movement, Action Point Gain, and Stamina Gain are increased by 5% of your Power for 15 seconds."},
+    {itemName: "Magistrate's Restraint", slots: "CE", description: "Whenever you perform a Critical Strike, your target will gain a stack of Magistrate's Consideration. Enemies affected by Magistrate's Consideration take Psychic Damage equal to 10% of your Power over 4 seconds. Allies affected by Magistrate's Consideration are healed for 3% of your maximum Hit Points over 4 seconds."},
+    {itemName: "Champion's Struggle", slots: "DE", description: "Whenever you are reduced to 50% Hit Points, you instantly recover 10% of your Stamina and are healed for 10% of your maximum Hit Points over 10 seconds. This effect can only occur once every 60 seconds."}
+];
+
+function wordySlots(slots) {
+    "use strict";
+    var i;
+    var count = {};
+    for (i = 0; i < slots.length; i += 1) {
+        if (count[slots[i]]) {
+            count[slots[i]] += 1;
+        } else {
+            count[slots[i]] = 1;
+        }
+    }
+    var keys = Object.keys(count);
+    var array = [];
+    for (i = 0; i < keys.length; i += 1) {
+        array.push(count[keys[i]] + " " + insignia[keys[i]]);
+    }
+    return array.join(", ");
+}
+
+function makeLink(text, href, title) {
+    "use strict";
+    var link = '<a href="' + href;
+    if (title) {
+        link += '" title="' + title;
+    }
+    return link + '">' + text + "</a>";
+}
+
+function matchCombo(A, B, C, D, E, i, j, k, l, m) {
+    "use strict";
+    A -= bonuses[i].A;
+    B -= bonuses[i].B;
+    C -= bonuses[i].C;
+    D -= bonuses[i].D;
+    E -= bonuses[i].E;
+    if (j !== undefined) {
+        A -= bonuses[j].A;
+        B -= bonuses[j].B;
+        C -= bonuses[j].C;
+        D -= bonuses[j].D;
+        E -= bonuses[j].E;
+        if (k !== undefined) {
+            A -= bonuses[k].A;
+            B -= bonuses[k].B;
+            C -= bonuses[k].C;
+            D -= bonuses[k].D;
+            E -= bonuses[k].E;
+            if (l !== undefined) {
+                A -= bonuses[l].A;
+                B -= bonuses[l].B;
+                C -= bonuses[l].C;
+                D -= bonuses[l].D;
+                E -= bonuses[l].E;
+                if (m !== undefined) {
+                    A -= bonuses[m].A;
+                    B -= bonuses[m].B;
+                    C -= bonuses[m].C;
+                    D -= bonuses[m].D;
+                    E -= bonuses[m].E;
+                }
+            }
+        }
+    }
+    return A >= 0 && B >= 0 && C >= 0 && D >= 0 && E >= 0;
+}
+
+function addNode(array) {
+    "use strict";
+    var i;
+    for (i = 0; i < array.length; i += 1) {
+        array[i] = makeLink(bonuses[array[i]].itemName, "https://two30.github.io/neverwinter-insignia/?" + array[i], bonuses[array[i]].description);
+    }
+    var list = document.getElementById("list");
+    var node = document.createElement("li");
+    node.innerHTML = array.join(", ");
+    list.appendChild(node);
+}
+
+function sortJoin(array) {
+    "use strict";
+    var result = array.sort(function (a, b) {
+        return a - b;
+    });
+    return result.join(" ");
+}
+
+function update() {
+    "use strict";
+    var list = document.getElementById("list");
+    while (list.childNodes.length > 0) {
+        list.removeChild(list.childNodes[0]);
+    }
+    var A = document.getElementById("select0").selectedIndex;
+    var B = document.getElementById("select1").selectedIndex;
+    var C = document.getElementById("select2").selectedIndex;
+    var D = document.getElementById("select3").selectedIndex;
+    var E = document.getElementById("select4").selectedIndex;
+    var i;
+    var j;
+    var k;
+    var l;
+    var m;
+    var combos = {};
+    for (i = 0; i < bonuses.length; i += 1) {
+        if (matchCombo(A, B, C, D, E, i)) {
+            combos[sortJoin([i])] = true;
+            for (j = 0; j < bonuses.length; j += 1) {
+                if (matchCombo(A, B, C, D, E, i, j)) {
+                    delete combos[sortJoin([i])];
+                    combos[sortJoin([i, j])] = true;
+                    for (k = 0; k < bonuses.length; k += 1) {
+                        if (matchCombo(A, B, C, D, E, i, j, k)) {
+                            delete combos[sortJoin([i, j])];
+                            combos[sortJoin([i, j, k])] = true;
+                            for (l = 0; l < bonuses.length; l += 1) {
+                                if (matchCombo(A, B, C, D, E, i, j, k, l)) {
+                                    delete combos[sortJoin([i, j, k])];
+                                    combos[sortJoin([i, j, k, l])] = true;
+                                    for (m = 0; m < bonuses.length; m += 1) {
+                                        if (matchCombo(A, B, C, D, E, i, j, k, l, m)) {
+                                            delete combos[sortJoin([i, j, k, l])];
+                                            combos[sortJoin([i, j, k, l, m])] = true;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    var keys = Object.keys(combos);
+    for (i = 0; i < keys.length; i += 1) {
+        keys[i] = keys[i].split(" ");
+    }
+    keys.sort(function (a, b) {
+        return b.length - a.length;
+    });
+    for (i = 0; i < keys.length; i += 1) {
+        addNode(keys[i]);
+    }
+    history.replaceState(null, null, "?" + A + "," + B + "," + C + "," + D + "," + E);
+}
+
+function initialize() {
+    "use strict";
+    var selectA = document.getElementById("select0");
+    var selectB = document.getElementById("select1");
+    var selectC = document.getElementById("select2");
+    var selectD = document.getElementById("select3");
+    var selectE = document.getElementById("select4");
+    var i;
+    var option;
+    for (i = 0; i < 11; i += 1) {
+        option = document.createElement("option");
+        option.text = i;
+        selectA.add(option);
+        option = document.createElement("option");
+        option.text = i;
+        selectB.add(option);
+        option = document.createElement("option");
+        option.text = i;
+        selectC.add(option);
+        option = document.createElement("option");
+        option.text = i;
+        selectD.add(option);
+        option = document.createElement("option");
+        option.text = i;
+        selectE.add(option);
+    }
+    var j;
+    for (i = 0; i < bonuses.length; i += 1) {
+        bonuses[i].wordySlots = wordySlots(bonuses[i].slots);
+        bonuses[i].A = 0;
+        bonuses[i].B = 0;
+        bonuses[i].C = 0;
+        bonuses[i].D = 0;
+        bonuses[i].E = 0;
+        for (j = 0; j < bonuses[i].slots.length; j += 1) {
+            bonuses[i][bonuses[i].slots[j]] += 1;
+        }
+    }
+    var query = location.search.slice(1).split(",");
+    for (i = 0; i < 5; i += 1) {
+        query[i] = parseInt(query[i]);
+        if (query[i] >= 0 && query[i] <= 15) {
+            document.getElementById("select" + i).selectedIndex = query[i];
+        }
+    }
+    update();
+}
+
+initialize();
+</script>
+</body>
+</html>
