@@ -120,8 +120,10 @@ function matchCombo(A, B, C, D, E, i, j, k, l, m) {
 function addNode(array) {
     "use strict";
     var i;
+    var href;
     for (i = 0; i < array.length; i += 1) {
-        array[i] = makeLink(bonuses[array[i]].itemName, "https://two30.github.io/neverwinter-insignia/?" + array[i], bonuses[array[i]].description);
+        href = "https://two30.github.io/neverwinter-insignia/?" + (parseInt(array[i]) + 2);
+        array[i] = makeLink(bonuses[array[i]].itemName, href, bonuses[array[i]].description);
     }
     var list = document.getElementById("list");
     var node = document.createElement("li");
