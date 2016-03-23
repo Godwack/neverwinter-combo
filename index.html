@@ -6,6 +6,7 @@
 <style>
 a {text-decoration: none;}
 a:hover {text-decoration: underline;}
+a.size2 {color: darkgreen;}
 </style>
 </head>
 <body>
@@ -70,13 +71,11 @@ function wordySlots(slots) {
     return array.join(", ");
 }
 
-function makeLink(text, href, title) {
+function makeLink(i) {
     "use strict";
-    var link = '<a href="' + href;
-    if (title) {
-        link += '" title="' + title;
-    }
-    return link + '">' + text + "</a>";
+    var link = '<a class="size' + bonuses[i].slots.length;
+    link += '" href="https://two30.github.io/neverwinter-insignia/?' + (parseInt(i) + 2);
+    return link + '" title="' + bonuses[i].description + '">' + bonuses[i].itemName + "</a>";
 }
 
 function matchCombo(A, B, C, D, E, i, j, k, l, m) {
@@ -122,8 +121,7 @@ function addNode(array) {
     var i;
     var href;
     for (i = 0; i < array.length; i += 1) {
-        href = "https://two30.github.io/neverwinter-insignia/?" + (parseInt(array[i]) + 2);
-        array[i] = makeLink(bonuses[array[i]].itemName, href, bonuses[array[i]].description);
+        array[i] = makeLink(array[i]);
     }
     var list = document.getElementById("list");
     var node = document.createElement("li");
