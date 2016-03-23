@@ -136,6 +136,18 @@ function sortJoin(array) {
     return result.join(" ");
 }
 
+function score(array) {
+    "use strict";
+    var sum = array.length;
+    var i;
+    for (i = 0; i < array.length; i += 1) {
+        if (bonuses[array[i]].slots.length === 3) {
+            sum += 1;
+        }
+    }
+    return sum;
+}
+
 function update() {
     "use strict";
     var list = document.getElementById("list");
@@ -155,23 +167,23 @@ function update() {
     var combos = {};
     for (i = 0; i < bonuses.length; i += 1) {
         if (matchCombo(A, B, C, D, E, i)) {
-            combos[sortJoin([i])] = true;
+            combos[sortJoin([i])] = score([i]);
             for (j = 0; j < bonuses.length; j += 1) {
                 if (matchCombo(A, B, C, D, E, i, j)) {
                     delete combos[sortJoin([i])];
-                    combos[sortJoin([i, j])] = true;
+                    combos[sortJoin([i, j])] = score([i, j]);
                     for (k = 0; k < bonuses.length; k += 1) {
                         if (matchCombo(A, B, C, D, E, i, j, k)) {
                             delete combos[sortJoin([i, j])];
-                            combos[sortJoin([i, j, k])] = true;
+                            combos[sortJoin([i, j, k])] = score([i, j, k]);
                             for (l = 0; l < bonuses.length; l += 1) {
                                 if (matchCombo(A, B, C, D, E, i, j, k, l)) {
                                     delete combos[sortJoin([i, j, k])];
-                                    combos[sortJoin([i, j, k, l])] = true;
+                                    combos[sortJoin([i, j, k, l])] = score([i, j, k, l]);
                                     for (m = 0; m < bonuses.length; m += 1) {
                                         if (matchCombo(A, B, C, D, E, i, j, k, l, m)) {
                                             delete combos[sortJoin([i, j, k, l])];
-                                            combos[sortJoin([i, j, k, l, m])] = true;
+                                            combos[sortJoin([i, j, k, l, m])] = score([i, j, k, l, m]);
                                         }
                                     }
                                 }
@@ -183,14 +195,11 @@ function update() {
         }
     }
     var keys = Object.keys(combos);
-    for (i = 0; i < keys.length; i += 1) {
-        keys[i] = keys[i].split(" ");
-    }
     keys.sort(function (a, b) {
-        return b.length - a.length;
+        return combos[b] - combos[a];
     });
     for (i = 0; i < keys.length; i += 1) {
-        addNode(keys[i]);
+        addNode(keys[i].split(" "));
     }
     history.replaceState(null, null, "?" + A + "," + B + "," + C + "," + D + "," + E);
 }
