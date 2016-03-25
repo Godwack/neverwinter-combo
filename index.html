@@ -7,15 +7,29 @@
 a {text-decoration: none;}
 a:hover {text-decoration: underline;}
 a.size2 {color: darkgreen;}
+input {text-align: right; width: 40px;}
+table {clear: both;}
+td {border: thin dotted black;}
+#column1, #column2, #column3 {float: left; padding-right: 5px;}
 </style>
 </head>
 <body>
-<select id="select0" onchange="update()"></select>Crescent Insignia<br>
-<select id="select1" onchange="update()"></select>Regal Insignia<br>
-<select id="select2" onchange="update()"></select>Barbed Insignia<br>
-<select id="select3" onchange="update()"></select>Illuminated Insignia<br>
-<select id="select4" onchange="update()"></select>Enlightened Insignia<br><br>
-Possible Bonus Combos:<ol id="list"></ol>
+<div id="column1">
+<div><select id="select0" onchange="update()"></select>Crescent Insignia</div>
+<div><select id="select1" onchange="update()"></select>Regal Insignia</div>
+<div><select id="select2" onchange="update()"></select>Barbed Insignia</div>
+<div><select id="select3" onchange="update()"></select>Illuminated Insignia</div>
+<div><select id="select4" onchange="update()"></select>Enlightened Insignia</div>
+</div>
+<div id="column2"></div>
+<div id="column3"></div>
+<table id="table">
+<tr>
+<th>Score</th>
+<th>Combo</th>
+</tr>
+</table>
+
 <script>
 var insignia = {
     A: "Crescent",
@@ -116,16 +130,18 @@ function matchCombo(A, B, C, D, E, i, j, k, l, m) {
     return A >= 0 && B >= 0 && C >= 0 && D >= 0 && E >= 0;
 }
 
-function addNode(array) {
+function addNode(score, array) {
     "use strict";
     var i;
+    var table = document.getElementById("table");
+    var row = table.insertRow(table.rows.length);
+    var cell = row.insertCell();
+    cell.textContent = score;
+    cell = row.insertCell();
     for (i = 0; i < array.length; i += 1) {
         array[i] = makeLink(array[i]);
     }
-    var list = document.getElementById("list");
-    var node = document.createElement("li");
-    node.innerHTML = array.join(", ");
-    list.appendChild(node);
+    cell.innerHTML = array.join(", ");
 }
 
 function sortJoin(array) {
@@ -136,23 +152,21 @@ function sortJoin(array) {
     return result.join(" ");
 }
 
-function score(array) {
+function score(weights, array) {
     "use strict";
-    var sum = array.length;
+    var sum = 0;
     var i;
     for (i = 0; i < array.length; i += 1) {
-        if (bonuses[array[i]].slots.length === 3) {
-            sum += 1;
-        }
+        sum += weights[array[i]];
     }
     return sum;
 }
 
 function update() {
     "use strict";
-    var list = document.getElementById("list");
-    while (list.childNodes.length > 0) {
-        list.removeChild(list.childNodes[0]);
+    var table = document.getElementById("table");
+    while (table.rows.length > 1) {
+        table.deleteRow(-1);
     }
     var A = document.getElementById("select0").selectedIndex;
     var B = document.getElementById("select1").selectedIndex;
@@ -164,26 +178,36 @@ function update() {
     var k;
     var l;
     var m;
+    var input;
+    var weights = [];
+    for (i = 0; i < bonuses.length; i += 1) {
+        input = document.getElementById("weight" + i);
+        weights[i] = parseInt(input.value);
+        if (isNaN(weights[i]) || weights[i] < 0) {
+            weights[i] = bonuses[i].slots.length - 1;
+        }
+        input.value = weights[i];
+    }
     var combos = {};
     for (i = 0; i < bonuses.length; i += 1) {
-        if (matchCombo(A, B, C, D, E, i)) {
-            combos[sortJoin([i])] = score([i]);
+        if (weights[i] > 0 && matchCombo(A, B, C, D, E, i)) {
+            combos[sortJoin([i])] = score(weights, [i]);
             for (j = 0; j < bonuses.length; j += 1) {
-                if (matchCombo(A, B, C, D, E, i, j)) {
+                if (weights[j] > 0 && matchCombo(A, B, C, D, E, i, j)) {
                     delete combos[sortJoin([i])];
-                    combos[sortJoin([i, j])] = score([i, j]);
+                    combos[sortJoin([i, j])] = score(weights, [i, j]);
                     for (k = 0; k < bonuses.length; k += 1) {
-                        if (matchCombo(A, B, C, D, E, i, j, k)) {
+                        if (weights[k] > 0 && matchCombo(A, B, C, D, E, i, j, k)) {
                             delete combos[sortJoin([i, j])];
-                            combos[sortJoin([i, j, k])] = score([i, j, k]);
+                            combos[sortJoin([i, j, k])] = score(weights, [i, j, k]);
                             for (l = 0; l < bonuses.length; l += 1) {
-                                if (matchCombo(A, B, C, D, E, i, j, k, l)) {
+                                if (weights[l] > 0 && matchCombo(A, B, C, D, E, i, j, k, l)) {
                                     delete combos[sortJoin([i, j, k])];
-                                    combos[sortJoin([i, j, k, l])] = score([i, j, k, l]);
+                                    combos[sortJoin([i, j, k, l])] = score(weights, [i, j, k, l]);
                                     for (m = 0; m < bonuses.length; m += 1) {
-                                        if (matchCombo(A, B, C, D, E, i, j, k, l, m)) {
+                                        if (weights[m] > 0 && matchCombo(A, B, C, D, E, i, j, k, l, m)) {
                                             delete combos[sortJoin([i, j, k, l])];
-                                            combos[sortJoin([i, j, k, l, m])] = score([i, j, k, l, m]);
+                                            combos[sortJoin([i, j, k, l, m])] = score(weights, [i, j, k, l, m]);
                                         }
                                     }
                                 }
@@ -199,9 +223,9 @@ function update() {
         return combos[b] - combos[a];
     });
     for (i = 0; i < keys.length; i += 1) {
-        addNode(keys[i].split(" "));
+        addNode(combos[keys[i]], keys[i].split(" "));
     }
-    history.replaceState(null, null, "?" + A + "," + B + "," + C + "," + D + "," + E);
+    history.replaceState(null, null, "?" + A + "," + B + "," + C + "," + D + "," + E + "," + weights.join(","));
 }
 
 function initialize() {
@@ -212,26 +236,35 @@ function initialize() {
     var selectD = document.getElementById("select3");
     var selectE = document.getElementById("select4");
     var i;
-    var option;
-    for (i = 0; i < 11; i += 1) {
-        option = document.createElement("option");
-        option.text = i;
-        selectA.add(option);
-        option = document.createElement("option");
-        option.text = i;
-        selectB.add(option);
-        option = document.createElement("option");
-        option.text = i;
-        selectC.add(option);
-        option = document.createElement("option");
-        option.text = i;
-        selectD.add(option);
-        option = document.createElement("option");
-        option.text = i;
-        selectE.add(option);
-    }
     var j;
+    var element;
+    for (i = 0; i < 11; i += 1) {
+        element = document.createElement("option");
+        element.text = i;
+        selectA.add(element);
+        element = document.createElement("option");
+        element.text = i;
+        selectB.add(element);
+        element = document.createElement("option");
+        element.text = i;
+        selectC.add(element);
+        element = document.createElement("option");
+        element.text = i;
+        selectD.add(element);
+        element = document.createElement("option");
+        element.text = i;
+        selectE.add(element);
+    }
+    var column2 = document.getElementById("column2");
+    var column3 = document.getElementById("column3");
     for (i = 0; i < bonuses.length; i += 1) {
+        element = document.createElement("div");
+        element.innerHTML = '<input type="text" id="weight' + i + '" onchange="update()">' + makeLink(i);
+        if (bonuses[i].slots.length < 3) {
+            column3.appendChild(element);
+        } else {
+            column2.appendChild(element);
+        }
         bonuses[i].wordySlots = wordySlots(bonuses[i].slots);
         bonuses[i].A = 0;
         bonuses[i].B = 0;
@@ -245,8 +278,14 @@ function initialize() {
     var query = location.search.slice(1).split(",");
     for (i = 0; i < 5; i += 1) {
         query[i] = parseInt(query[i]);
-        if (query[i] >= 0 && query[i] <= 15) {
+        if (query[i] >= 0) {
             document.getElementById("select" + i).selectedIndex = query[i];
+        }
+    }
+    for (i = 5; i < bonuses.length + 5; i += 1) {
+        query[i] = parseInt(query[i]);
+        if (query[i] >= 0) {
+            document.getElementById("weight" + (i - 5)).value = query[i];
         }
     }
     update();
