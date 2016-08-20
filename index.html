@@ -92,9 +92,8 @@ function wordySlots(slots) {
 
 function makeLink(i) {
     "use strict";
-    var link = "<a class=\"size" + bonuses[i].slots.length;
-    link += "\" href=\"https://two30.github.io/neverwinter-insignia/?" + (parseInt(i) + 2);
-    return link + "\" title=\"" + bonuses[i].description + "\">" + bonuses[i].itemName + "</a>";
+    return "<a class=\"size" + bonuses[i].slots.length + "\" href=\"https://two30.github.io/neverwinter-insignia/?"
+            + (parseInt(i) + 2) + "\" title=\"" + bonuses[i].description + "\">" + bonuses[i].itemName + "</a>";
 }
 
 function matchCombo(A, B, C, D, E, i, j, k, l, m) {
