@@ -177,6 +177,7 @@ function update() {
     var C = document.getElementById("select2").selectedIndex;
     var D = document.getElementById("select3").selectedIndex;
     var E = document.getElementById("select4").selectedIndex;
+    var customized = (A !== 0 || B !== 0 || C !== 0 || D !== 0 || E !== 0);
     var i;
     var j;
     var k;
@@ -189,6 +190,8 @@ function update() {
         weights[i] = parseInt(input.value);
         if (isNaN(weights[i]) || weights[i] < 0) {
             weights[i] = bonuses[i].slots.length - 1;
+        } else if (weights[i] !== bonuses[i].slots.length - 1) {
+            customized = true;
         }
         input.value = weights[i];
     }
@@ -229,7 +232,11 @@ function update() {
     for (i = 0; i < keys.length; i += 1) {
         addNode(combos[keys[i]], keys[i].split(" "));
     }
-    history.replaceState(null, null, "?" + A + "," + B + "," + C + "," + D + "," + E + "," + weights.join(","));
+    if (customized === true) {
+        history.replaceState(null, null, "?" + A + "," + B + "," + C + "," + D + "," + E + "," + weights.join(","));
+    } else {
+        history.replaceState(null, null, location.protocol + "//" + location.host + location.pathname);
+    }
 }
 
 function initialize() {
