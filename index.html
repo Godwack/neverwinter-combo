@@ -57,7 +57,7 @@ var bonuses = [
     {itemName: "Assassin's Covenant", slots: "BEE", description: "You lose 10% of your Defense, Deflection, and Life Steal, and gain the combination of lost stats as Power."},
     {itemName: "Wanderer's Fortune", slots: "ABD", description: "You have a 4% chance after killing a foe to find a Refining Stone at your feet."},
     {itemName: "Cavalry's Warning", slots: "ACE", description: "Whenever you activate a Mount Combat Power, you gain an increase of 10% to your Power, Recovery, Armor Penetration, Critical Strike, Defense, Deflection, Regeneration, and Life Steal."},
-    {itemName: "Shepherd's Devotion", slots: "BCD", description: "Whenever you use a Daily power, your teammates Defense, Deflection, and Movement are increased by 5% of your Power for 15 seconds."},
+    {itemName: "Shepherd's Devotion", slots: "BCD", description: "Whenever you use a Daily power, your teammates Defense, Deflection, and Movement are increased by 5% of your Power for 10 seconds."},
     {itemName: "Gladiator's Guile", slots: "BDE", description: "When your Stamina is above 75%, you move 15% faster. When your Stamina is below 25%, gain 15% of your Power as Stamina Gain."},
     {itemName: "Vampire's Thirst", slots: "AB", description: "Whenever you perform a Lifesteal, you are healed for 1.2% of your maximum Hit Points over 4 seconds."},
     {itemName: "Survivor's Gift", slots: "AC", description: "Whenever you Deflect an attack, you are healed for 1.2% of your maximum Hit Points over 4 seconds."},
@@ -73,9 +73,10 @@ var bonuses = [
 
 function wordySlots(slots) {
     "use strict";
-    var i;
+    var i = slots.length;
     var count = {};
-    for (i = 0; i < slots.length; i += 1) {
+    while (i > 0) {
+        i -= 1;
         if (count[slots[i]]) {
             count[slots[i]] += 1;
         } else {
@@ -84,7 +85,9 @@ function wordySlots(slots) {
     }
     var keys = Object.keys(count);
     var array = [];
-    for (i = 0; i < keys.length; i += 1) {
+    i = keys.length;
+    while (i > 0) {
+        i -= 1;
         array.push(count[keys[i]] + " " + insignia[keys[i]]);
     }
     return array.join(", ");
@@ -136,13 +139,14 @@ function matchCombo(A, B, C, D, E, i, j, k, l, m) {
 
 function addNode(score, array) {
     "use strict";
-    var i;
     var table = document.getElementById("table");
     var row = table.insertRow(table.rows.length);
     var cell = row.insertCell();
     cell.textContent = score;
     cell = row.insertCell();
-    for (i = 0; i < array.length; i += 1) {
+    var i = array.length;
+    while (i > 0) {
+        i -= 1;
         array[i] = makeLink(array[i]);
     }
     cell.innerHTML = array.join(", ");
@@ -159,8 +163,9 @@ function sortJoin(array) {
 function score(weights, array) {
     "use strict";
     var sum = 0;
-    var i;
-    for (i = 0; i < array.length; i += 1) {
+    var i = array.length;
+    while (i > 0) {
+        i -= 1;
         sum += weights[array[i]];
     }
     return sum;
@@ -178,14 +183,15 @@ function update() {
     var D = document.getElementById("select3").selectedIndex;
     var E = document.getElementById("select4").selectedIndex;
     var customized = (A !== 0 || B !== 0 || C !== 0 || D !== 0 || E !== 0);
-    var i;
+    var i = bonuses.length;
     var j;
     var k;
     var l;
     var m;
     var input;
     var weights = [];
-    for (i = 0; i < bonuses.length; i += 1) {
+    while (i > 0) {
+        i -= 1;
         input = document.getElementById("weight" + i);
         weights[i] = parseInt(input.value);
         if (isNaN(weights[i]) || weights[i] < 0) {
@@ -229,8 +235,10 @@ function update() {
     keys.sort(function (a, b) {
         return combos[b] - combos[a];
     });
-    for (i = 0; i < keys.length; i += 1) {
+    i = 0;
+    while (i < keys.length) {
         addNode(combos[keys[i]], keys[i].split(" "));
+        i += 1;
     }
     if (customized === true) {
         history.replaceState(null, null, "?" + A + "," + B + "," + C + "," + D + "," + E + "," + weights.join(","));
@@ -246,10 +254,10 @@ function initialize() {
     var selectC = document.getElementById("select2");
     var selectD = document.getElementById("select3");
     var selectE = document.getElementById("select4");
-    var i;
+    var i = 0;
     var j;
     var element;
-    for (i = 0; i < 11; i += 1) {
+    while (i < 11) {
         element = document.createElement("option");
         element.text = i;
         selectA.add(element);
@@ -265,39 +273,49 @@ function initialize() {
         element = document.createElement("option");
         element.text = i;
         selectE.add(element);
+        i += 1;
     }
     var column2 = document.getElementById("column2");
     var column3 = document.getElementById("column3");
-    for (i = 0; i < bonuses.length; i += 1) {
+    var bonus;
+    i = 0;
+    while (i < bonuses.length) {
         element = document.createElement("div");
         element.innerHTML = "<input type=\"text\" id=\"weight" + i + "\" onchange=\"update()\">" + makeLink(i);
-        if (bonuses[i].slots.length < 3) {
+        bonus = bonuses[i];
+        if (bonus.slots.length < 3) {
             column3.appendChild(element);
         } else {
             column2.appendChild(element);
         }
-        bonuses[i].wordySlots = wordySlots(bonuses[i].slots);
-        bonuses[i].A = 0;
-        bonuses[i].B = 0;
-        bonuses[i].C = 0;
-        bonuses[i].D = 0;
-        bonuses[i].E = 0;
-        for (j = 0; j < bonuses[i].slots.length; j += 1) {
-            bonuses[i][bonuses[i].slots[j]] += 1;
+        bonus.wordySlots = wordySlots(bonus.slots);
+        bonus.A = 0;
+        bonus.B = 0;
+        bonus.C = 0;
+        bonus.D = 0;
+        bonus.E = 0;
+        j = bonus.slots.length;
+        while (j > 0) {
+            j -= 1;
+            bonus[bonus.slots[j]] += 1;
         }
+        i += 1;
     }
     var query = location.search.slice(1).split(",");
-    for (i = 0; i < 5; i += 1) {
+    i = 0;
+    while (i < 5) {
         query[i] = parseInt(query[i]);
         if (query[i] >= 0 && query[i] <= 10) {
             document.getElementById("select" + i).selectedIndex = query[i];
         }
+        i += 1;
     }
-    for (i = 5; i < bonuses.length + 5; i += 1) {
+    while (i < bonuses.length + 5) {
         query[i] = parseInt(query[i]);
         if (query[i] >= 0) {
             document.getElementById("weight" + (i - 5)).value = query[i];
         }
+        i += 1;
     }
     update();
 }
