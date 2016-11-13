@@ -96,7 +96,7 @@ function wordySlots(slots) {
 function makeLink(i) {
     "use strict";
     return "<a class=\"size" + bonuses[i].slots.length + "\" href=\"https://two30.github.io/neverwinter-insignia/?"
-            + (parseInt(i) + 2) + "\" title=\"" + bonuses[i].description + "\">" + bonuses[i].itemName + "</a>";
+            + (i + 2) + "\" title=\"" + bonuses[i].description + "\">" + bonuses[i].itemName + "</a>";
 }
 
 function matchCombo(A, B, C, D, E, i, j, k, l, m) {
@@ -147,20 +147,12 @@ function addNode(score, array) {
     var i = array.length;
     while (i > 0) {
         i -= 1;
-        array[i] = makeLink(array[i]);
+        array[i] = bonuses[array[i]].link;
     }
     cell.innerHTML = array.join(", ");
 }
 
-function sortJoin(array) {
-    "use strict";
-    var result = array.sort(function (a, b) {
-        return a - b;
-    });
-    return result.join(" ");
-}
-
-function score(weights, array) {
+function calcScore(weights, array) {
     "use strict";
     var sum = 0;
     var i = array.length;
@@ -169,6 +161,35 @@ function score(weights, array) {
         sum += weights[array[i]];
     }
     return sum;
+}
+
+function superbag(sup, sub) {
+    "use strict";
+    var i = 0;
+    var j = 0;
+    while (i < sup.length && j < sub.length) {
+        if (sup[i] < sub[j]) {
+            i += 1;
+        } else if (sup[i] === sub[j]) {
+            i += 1;
+            j += 1;
+        } else {
+            return false;
+        }
+    }
+    return j === sub.length;
+}
+
+function noSuperbags(array, current) {
+    "use strict";
+    var i = array.length;
+    while (i > 0) {
+        i -= 1;
+        if (superbag(array[i], current)) {
+            return false;
+        }
+    }
+    return true;
 }
 
 function update() {
@@ -182,7 +203,7 @@ function update() {
     var C = document.getElementById("select2").selectedIndex;
     var D = document.getElementById("select3").selectedIndex;
     var E = document.getElementById("select4").selectedIndex;
-    var customized = (A !== 0 || B !== 0 || C !== 0 || D !== 0 || E !== 0);
+    var customized = A !== 0 || B !== 0 || C !== 0 || D !== 0 || E !== 0;
     var i = bonuses.length;
     var j;
     var k;
@@ -193,52 +214,79 @@ function update() {
     while (i > 0) {
         i -= 1;
         input = document.getElementById("weight" + i);
-        weights[i] = parseInt(input.value);
-        if (isNaN(weights[i]) || weights[i] < 0) {
+        weights[i] = Math.max(parseInt(input.value), 0);
+        if (isNaN(weights[i])) {
             weights[i] = bonuses[i].slots.length - 1;
         } else if (weights[i] !== bonuses[i].slots.length - 1) {
             customized = true;
         }
         input.value = weights[i];
     }
-    var combos = {};
-    for (i = 0; i < bonuses.length; i += 1) {
+    var combos = [];
+    var length = bonuses.length;
+    var longest;
+    i = 0;
+    while (i < length) {
         if (weights[i] > 0 && matchCombo(A, B, C, D, E, i)) {
-            combos[sortJoin([i])] = score(weights, [i]);
-            for (j = 0; j < bonuses.length; j += 1) {
+            longest = 1;
+            j = i;
+            while (j < length) {
                 if (weights[j] > 0 && matchCombo(A, B, C, D, E, i, j)) {
-                    delete combos[sortJoin([i])];
-                    combos[sortJoin([i, j])] = score(weights, [i, j]);
-                    for (k = 0; k < bonuses.length; k += 1) {
+                    longest = 2;
+                    k = j;
+                    while (k < length) {
                         if (weights[k] > 0 && matchCombo(A, B, C, D, E, i, j, k)) {
-                            delete combos[sortJoin([i, j])];
-                            combos[sortJoin([i, j, k])] = score(weights, [i, j, k]);
-                            for (l = 0; l < bonuses.length; l += 1) {
+                            longest = 3;
+                            l = k;
+                            while (l < length) {
                                 if (weights[l] > 0 && matchCombo(A, B, C, D, E, i, j, k, l)) {
-                                    delete combos[sortJoin([i, j, k])];
-                                    combos[sortJoin([i, j, k, l])] = score(weights, [i, j, k, l]);
-                                    for (m = 0; m < bonuses.length; m += 1) {
+                                    longest = 4;
+                                    m = l;
+                                    while (m < length) {
                                         if (weights[m] > 0 && matchCombo(A, B, C, D, E, i, j, k, l, m)) {
-                                            delete combos[sortJoin([i, j, k, l])];
-                                            combos[sortJoin([i, j, k, l, m])] = score(weights, [i, j, k, l, m]);
+                                            longest = 5;
+                                            combos.push([i, j, k, l, m]);
                                         }
+                                        m += 1;
+                                    }
+                                    if (longest === 4 && noSuperbags(combos, [i, j, k, l])) {
+                                        combos.push([i, j, k, l]);
                                     }
                                 }
+                                l += 1;
+                            }
+                            if (longest === 3 && noSuperbags(combos, [i, j, k])) {
+                                combos.push([i, j, k]);
                             }
                         }
+                        k += 1;
+                    }
+                    if (longest === 2 && noSuperbags(combos, [i, j])) {
+                        combos.push([i, j]);
                     }
                 }
+                j += 1;
+            }
+            if (longest === 1 && noSuperbags(combos, [i])) {
+                combos.push([i]);
             }
         }
-    }
-    var keys = Object.keys(combos);
-    keys.sort(function (a, b) {
-        return combos[b] - combos[a];
-    });
-    i = 0;
-    while (i < keys.length) {
-        addNode(combos[keys[i]], keys[i].split(" "));
         i += 1;
+    }
+    var scores = {};
+    i = combos.length;
+    while (i > 0) {
+        i -= 1;
+        scores[combos[i].join()] = calcScore(weights, combos[i]);
+    }
+    var keys = Object.keys(scores);
+    keys.sort(function (a, b) {
+        return scores[a] - scores[b];
+    });
+    i = keys.length;
+    while (i > 0) {
+        i -= 1;
+        addNode(scores[keys[i]], keys[i].split(","));
     }
     if (customized === true) {
         history.replaceState(null, null, "?" + A + "," + B + "," + C + "," + D + "," + E + "," + weights.join(","));
@@ -280,8 +328,9 @@ function initialize() {
     var bonus;
     i = 0;
     while (i < bonuses.length) {
+        bonuses[i].link = makeLink(i);
         element = document.createElement("div");
-        element.innerHTML = "<input type=\"text\" id=\"weight" + i + "\" onchange=\"update()\">" + makeLink(i);
+        element.innerHTML = "<input type=\"text\" id=\"weight" + i + "\" onchange=\"update()\">" + bonuses[i].link;
         bonus = bonuses[i];
         if (bonus.slots.length < 3) {
             column3.appendChild(element);
@@ -302,20 +351,18 @@ function initialize() {
         i += 1;
     }
     var query = location.search.slice(1).split(",");
-    i = 0;
-    while (i < 5) {
-        query[i] = parseInt(query[i]);
-        if (query[i] >= 0 && query[i] <= 10) {
-            document.getElementById("select" + i).selectedIndex = query[i];
+    i = bonuses.length + 5;
+    while (i > 0) {
+        i -= 1;
+        j = parseInt(query[i]);
+        if (!isNaN(j)) {
+            j = Math.max(j, 0);
+            if (i > 4) {
+                document.getElementById("weight" + (i - 5)).value = j;
+            } else {
+                document.getElementById("select" + i).selectedIndex = Math.min(j, 10);
+            }
         }
-        i += 1;
-    }
-    while (i < bonuses.length + 5) {
-        query[i] = parseInt(query[i]);
-        if (query[i] >= 0) {
-            document.getElementById("weight" + (i - 5)).value = query[i];
-        }
-        i += 1;
     }
     update();
 }
